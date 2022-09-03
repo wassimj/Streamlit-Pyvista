@@ -1,39 +1,41 @@
-import io
+import pythreejs as THREE
 
-import streamlit as st
-import streamlit.components.v1 as components
+base = THREE.Mesh(
+    THREE.BoxBufferGeometry(20, 0.1, 20),
+    THREE.MeshLambertMaterial(color='green', opacity=0.5, transparent=True),
+    position=(0, 0, 0),
+)
+cube = THREE.Mesh(
+    THREE.BoxBufferGeometry(10, 10, 10),
+    THREE.MeshLambertMaterial(color='green', opacity=0.5, transparent=False),
+    position=(0, 5, 0),
+)
+
+view_width = 800
+view_height = 600
+target = (0, 5, 0)
+camera = THREE.CombinedCamera(position=[60, 60, 60], width=view_width, height=view_height)
+camera.mode = 'orthographic'
+camera.lookAt(target)
+camera.zoom = 4
+orbit = THREE.OrbitControls(controlling=camera, target=target)
+
+lights = [
+    THREE.PointLight(position=[100, 0, 0], color="#ffffff"),
+    THREE.PointLight(position=[0, 100, 0], color="#bbbbbb"),
+    THREE.PointLight(position=[0, 0, 100], color="#888888"),
+    THREE.AmbientLight(intensity=0.2),
+]
+
+scene = THREE.Scene(children=[base, cube, camera] + lights)
+
+renderer = THREE.Renderer(scene=scene, camera=camera, controls=[orbit],
+                    width=view_width, height=view_height)
+
+
 from ipywidgets import embed
-import pyvista as pv
-from pyvista.jupyter.pv_pythreejs import convert_plotter
+snippet = embed.embed_snippet(views=renderer)
+html = embed.html_template.format(title="", snippet=snippet)
 
-pv.start_xvfb()
-
-pv.set_plot_theme('document')
-
-
-def pyvista_streamlit(plotter):
-    widget = convert_plotter(plotter)
-    state = embed.dependency_state(widget)
-    fp = io.StringIO()
-    embed.embed_minimal_html(fp, None, title="", state=state)
-    fp.seek(0)
-    snippet = fp.read()
-    st.write(snippet)
-    components.html(snippet, width=900, height=500)
-
-
-with st.echo():
-    import pyvista as pv
-    from pyvista import examples
-
-    # Example dataset with normals
-    mesh = examples.load_random_hills()
-
-    # create a subset of arrows using the glyph filter
-    arrows = mesh.glyph(scale="Normals", orient="Normals", tolerance=0.05)
-
-    p = pv.Plotter()
-    p.add_mesh(arrows, color="black")
-    p.add_mesh(mesh, scalars="Elevation", cmap="terrain", smooth_shading=True)
-
-    pyvista_streamlit(p)
+import streamlit.components.v1 as components
+components.html(html, width=view_width, height=view_height)
