@@ -12,6 +12,7 @@ pv.set_plot_theme('document')
 
 
 def pyvista_streamlit(plotter):
+    st.write("Entered function")
     widget = convert_plotter(plotter)
     state = embed.dependency_state(widget)
     fp = io.StringIO()
