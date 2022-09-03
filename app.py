@@ -12,13 +12,13 @@ pv.set_plot_theme('document')
 
 
 def pyvista_streamlit(plotter):
-    st.write("Entered function")
     widget = convert_plotter(plotter)
     state = embed.dependency_state(widget)
     fp = io.StringIO()
     embed.embed_minimal_html(fp, None, title="", state=state)
     fp.seek(0)
     snippet = fp.read()
+    st.write(snippet)
     components.html(snippet, width=900, height=500)
 
 
